@@ -25,15 +25,16 @@ export default async function handler(req) {
     const xml = await res.text();
 
     // ── Fast regex parse (DOM is too slow in edge runtime) ──
+    // Feed wraps every value in <![CDATA[...]]> — match wrapped OR bare.
     const listings = [];
     const listingRx = /<Listing>([\s\S]*?)<\/Listing>/g;
     const g = (block, tag) => {
-      const m = block.match(new RegExp(`<${tag}>([^<]*)</${tag}>`));
-      return m ? m[1].trim() : "";
+      const m = block.match(new RegExp(`<${tag}>(?:<!\\[CDATA\\[([\\s\\S]*?)\\]\\]>|([^<]*))</${tag}>`));
+      return m ? (m[1] ?? m[2] ?? "").trim() : "";
     };
     const firstPic = block => {
-      const m = block.match(/<PictureUrl>([^<]*)<\/PictureUrl>/);
-      return m ? m[1].trim() : "";
+      const m = block.match(/<PictureUrl>(?:<!\[CDATA\[([\s\S]*?)\]\]>|([^<]*))<\/PictureUrl>/);
+      return m ? (m[1] ?? m[2] ?? "").trim() : "";
     };
 
     let match;
@@ -57,7 +58,7 @@ export default async function handler(req) {
         pic: firstPic(b),
         af: g(b, "FirstName"),
         al: g(b, "LastName"),
-        ae: g(b, "Email"),
+        ae: g(b, "EmailAddress"),
         ap: g(b, "OfficeLineNumber"),
         o: g(b, "OfficeName"),
       });
