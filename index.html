@@ -2,7 +2,10 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#F2F0EB">
 <title>Listing Guide — Coldwell Banker Select</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -22,10 +25,10 @@
     --sans:   'Helvetica Neue',Helvetica,Arial,sans-serif;
   }
   *{box-sizing:border-box;margin:0;padding:0}
-  html,body{height:100%;background:var(--bg);color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased}
-  body{display:flex;flex-direction:column;max-width:860px;margin:0 auto;min-height:100vh}
+  html,body{height:100%;background:var(--bg);color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent}
+  body{display:flex;flex-direction:column;max-width:860px;margin:0 auto;min-height:100vh;min-height:100dvh}
 
-  header{border-bottom:2px solid var(--ink);padding:20px 32px 18px;display:flex;align-items:flex-end;justify-content:space-between;gap:24px;background:var(--bg);position:sticky;top:0;z-index:20}
+  header{border-bottom:2px solid var(--ink);padding:20px 32px 18px;padding-top:max(20px,env(safe-area-inset-top));display:flex;align-items:flex-end;justify-content:space-between;gap:24px;background:var(--bg);position:sticky;top:0;z-index:20}
   .header-left{display:flex;flex-direction:column;gap:3px}
   .header-label{font-family:var(--mono);font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-3)}
   .header-title{font-weight:700;font-size:22px;letter-spacing:-.02em;text-transform:uppercase;line-height:1}
@@ -130,6 +133,57 @@
   ::-webkit-scrollbar-thumb{background:var(--rule)}
 
   .empty-state{padding:48px 32px;text-align:center;font-family:var(--mono);font-size:11px;color:var(--ink-3);letter-spacing:.08em}
+
+  /* ── Mobile (≤640px) ── */
+  @media (max-width:640px){
+    header{padding:14px 16px 12px;padding-top:max(14px,env(safe-area-inset-top));gap:12px}
+    .header-label{font-size:8px;letter-spacing:.16em}
+    .header-title{font-size:17px}
+    .feed-status{font-size:9px;letter-spacing:.06em}
+
+    #stats-bar{overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+    #stats-bar::-webkit-scrollbar{display:none}
+    .stat{flex:0 0 auto;min-width:90px;padding:9px 14px}
+    .stat-label{font-size:8px}
+    .stat-value{font-size:13px}
+
+    .tab{padding:13px 6px;font-size:9px;letter-spacing:.1em}
+
+    #messages{padding:20px 16px;gap:18px}
+    .msg-body{max-width:92%;padding:12px 14px;font-size:14px;line-height:1.6}
+    .msg-label{font-size:8px}
+
+    #chips{padding:0 16px 16px;gap:7px}
+    .chip{padding:10px 13px;font-size:11px}
+
+    #search-controls{padding:14px 16px;gap:10px}
+    /* font-size:16px on inputs prevents iOS Safari zoom-on-focus */
+    #search-input{font-size:16px;padding:12px 14px}
+    .filter-pill{padding:8px 12px;font-size:10px}
+
+    #search-meta{padding:10px 16px}
+
+    .listing-card{padding:14px 16px;gap:6px 12px}
+    .lc-addr{font-size:14px}
+    .lc-meta{font-size:10px;line-height:1.5}
+    .lc-price{font-size:14px}
+    .lc-status{font-size:8px}
+
+    .agent-card{padding:14px 16px;gap:4px 12px}
+    .ac-name{font-size:14px}
+    .ac-meta{font-size:10px;line-height:1.5}
+    .ac-count{font-size:14px}
+
+    #input-area{padding:12px 16px;padding-bottom:max(12px,env(safe-area-inset-bottom));gap:8px}
+    #msg-input{font-size:16px;padding:11px 13px}
+    #send-btn{padding:0 16px;font-size:10px;min-height:44px}
+
+    footer{padding:9px 16px;padding-bottom:max(9px,env(safe-area-inset-bottom))}
+    footer .kbd{display:none}
+
+    #loading{padding:32px 24px}
+    .empty-state{padding:36px 16px}
+  }
 </style>
 </head>
 <body>
@@ -242,6 +296,7 @@ let filters    = { status: "all", price: "all", text: "" };
 
 const $ = id => document.getElementById(id);
 const fmt = n => n ? "$" + n.toLocaleString() : "—";
+const cacheSet = data => { try { localStorage.setItem(CACHE_KEY, JSON.stringify({ ts: Date.now(), data })); } catch {} };
 
 // ─────────────────────────────────────────────────────────────────────────────
 // FEED LOADING — cache-first, then network
@@ -277,7 +332,7 @@ async function fetchFreshFeed() {
     if (res.ok) {
       const data = await res.json();
       if (data.listings && data.listings.length) {
-        localStorage.setItem(CACHE_KEY, JSON.stringify({ ts: Date.now(), data }));
+        cacheSet(data);
         return data;
       }
     }
@@ -291,7 +346,7 @@ async function fetchFreshFeed() {
       if (xml && xml.length > 1000) {
         const data = parseXMLClientSide(xml);
         if (data.listings.length) {
-          localStorage.setItem(CACHE_KEY, JSON.stringify({ ts: Date.now(), data }));
+          cacheSet(data);
           return data;
         }
       }
@@ -585,28 +640,24 @@ async function send() {
   showThinking();
 
   try {
-    const res = await fetch("https://api.anthropic.com/v1/messages", {
+    const res = await fetch("/api/chat", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: "claude-sonnet-4-20250514",
-        max_tokens: 1500,
-        system: systemPrompt,
-        messages: history,
-      }),
+      body: JSON.stringify({ system: systemPrompt, messages: history }),
     });
     const data = await res.json();
+    if (!res.ok) throw new Error(data.error || data.message || `HTTP ${res.status}`);
     const reply = data.content?.[0]?.text || "No response.";
     history.push({ role: "assistant", content: reply });
     removeThinking();
     appendMessage("agent", reply);
-  } catch {
+  } catch (err) {
     removeThinking();
-    appendMessage("agent", "Error reaching the agent. Please try again.");
+    appendMessage("agent", `Error reaching the agent: ${err.message}. Please try again.`);
   } finally {
     thinking = false;
     $("send-btn").disabled = false;
-    input.focus();
+    if (!matchMedia("(hover:none)").matches) input.focus();
   }
 }
 
