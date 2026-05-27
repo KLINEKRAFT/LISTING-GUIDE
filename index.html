@@ -209,7 +209,7 @@
 // CONFIG
 // ─────────────────────────────────────────────────────────────────────────────
 const API_URL    = "/api/listings";          // Vercel edge function (production)
-const CACHE_KEY  = "lg_feed_v2";
+const CACHE_KEY  = "lg_feed_v3";
 const CACHE_TTL  = 30 * 60 * 1000;           // 30 min
 const FEED_RAW   = "http://realistiq.net/exports/iq_cb_select_zillow.xml";
 
@@ -320,7 +320,7 @@ function parseXMLClientSide(xml) {
       yr: parseInt(g(n,"YearBuilt")) || 0,
       pic:n.querySelector("PictureUrl")?.textContent?.trim() || "",
       af: g(n,"FirstName"), al: g(n,"LastName"),
-      ae: g(n,"Email"),     ap: g(n,"OfficeLineNumber"),
+      ae: g(n,"EmailAddress"), ap: g(n,"OfficeLineNumber"),
       o:  g(n,"OfficeName"),
     });
   });
