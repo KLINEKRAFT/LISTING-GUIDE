@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Listing Guide — Coldwell Banker Select</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:       #F2F0EB;
+    --bg-2:     #E8E5DE;
+    --bg-3:     #DEDAD2;
+    --ink:      #1A1A18;
+    --ink-2:    #4A4A46;
+    --ink-3:    #8A8A84;
+    --rule:     #CCCAC2;
+    --accent:   #1A1A18;
+    --red:      #C0392B;
+    --mono:     'Space Mono', 'Courier New', monospace;
+    --sans:     'Helvetica Neue', Helvetica, Arial, sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    height: 100%;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--sans);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body {
+    display: flex;
+    flex-direction: column;
+    max-width: 860px;
+    margin: 0 auto;
+    min-height: 100vh;
+  }
+
+  /* ── Header ── */
+  header {
+    border-bottom: 2px solid var(--ink);
+    padding: 20px 32px 18px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 24px;
+    background: var(--bg);
+    position: sticky;
+    top: 0;
+    z-index: 20;
+  }
+
+  .header-left { display: flex; flex-direction: column; gap: 3px; }
+
+  .header-label {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+
+  .header-title {
+    font-family: var(--sans);
+    font-weight: 700;
+    font-size: 22px;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+    text-transform: uppercase;
+    line-height: 1;
+  }
+
+  .feed-status {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--ink-3);
+    letter-spacing: 0.08em;
+    white-space: nowrap;
+    padding-bottom: 2px;
+  }
+
+  .dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--ink-3);
+    flex-shrink: 0;
+    transition: background 0.3s;
+  }
+  .dot.ok    { background: #27AE60; }
+  .dot.error { background: var(--red); }
+  .dot.loading {
+    background: var(--ink-3);
+    animation: blink 1s step-end infinite;
+  }
+
+  @keyframes blink { 50% { opacity: 0; } }
+
+  /* ── Stats bar ── */
+  #stats-bar {
+    display: none;
+    border-bottom: 1px solid var(--rule);
+    background: var(--bg-2);
+  }
+
+  #stats-bar.visible { display: flex; }
+
+  .stat {
+    flex: 1;
+    padding: 11px 20px;
+    border-right: 1px solid var(--rule);
+  }
+  .stat:last-child { border-right: none; }
+
+  .stat-label {
+    font-family: var(--mono);
+    font-size: 8px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin-bottom: 4px;
+  }
+
+  .stat-value {
+    font-family: var(--mono);
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--ink);
+    letter-spacing: -0.01em;
+  }
+
+  /* ── Messages ── */
+  #messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 28px 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  .msg { display: flex; flex-direction: column; }
+  .msg.user  { align-items: flex-end; }
+  .msg.agent { align-items: flex-start; }
+
+  .msg-label {
+    font-family: var(--mono);
+    font-size: 8px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin-bottom: 6px;
+  }
+
+  .msg-body {
+    max-width: 88%;
+    padding: 14px 18px;
+    font-size: 13px;
+    line-height: 1.8;
+    white-space: pre-wrap;
+    font-family: var(--sans);
+    font-weight: 400;
+  }
+
+  .msg.user  .msg-body {
+    background: var(--ink);
+    color: var(--bg);
+    border: none;
+  }
+
+  .msg.agent .msg-body {
+    background: var(--bg-2);
+    color: var(--ink);
+    border: 1px solid var(--rule);
+  }
+
+  /* Thinking */
+  .thinking-dots {
+    display: flex; gap: 5px; align-items: center;
+    padding: 16px 18px;
+    background: var(--bg-2);
+    border: 1px solid var(--rule);
+  }
+
+  .thinking-dots span {
+    width: 5px; height: 5px; border-radius: 50%;
+    background: var(--ink-3);
+    animation: pulse 1.1s ease-in-out infinite;
+  }
+  .thinking-dots span:nth-child(2) { animation-delay: 0.2s; }
+  .thinking-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+  @keyframes pulse {
+    0%,100% { opacity: 0.2; transform: scale(0.75); }
+    50%      { opacity: 1;   transform: scale(1); }
+  }
+
+  /* ── Chips ── */
+  #chips {
+    padding: 0 32px 20px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .chip {
+    background: transparent;
+    border: 1px solid var(--rule);
+    color: var(--ink-2);
+    padding: 7px 13px;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    transition: all 0.12s;
+    border-radius: 0;
+  }
+
+  .chip:hover {
+    background: var(--ink);
+    color: var(--bg);
+    border-color: var(--ink);
+  }
+
+  /* ── Input area ── */
+  #input-area {
+    border-top: 2px solid var(--ink);
+    padding: 16px 32px;
+    display: flex;
+    gap: 10px;
+    background: var(--bg);
+  }
+
+  #msg-input {
+    flex: 1;
+    background: var(--bg-2);
+    border: 1px solid var(--rule);
+    border-radius: 0;
+    padding: 11px 14px;
+    font-family: var(--sans);
+    font-size: 13px;
+    color: var(--ink);
+    outline: none;
+    resize: none;
+    line-height: 1.5;
+    transition: border-color 0.12s;
+    font-weight: 400;
+  }
+  #msg-input:focus { border-color: var(--ink); }
+  #msg-input::placeholder { color: var(--ink-3); }
+
+  #send-btn {
+    background: var(--ink);
+    color: var(--bg);
+    border: none;
+    padding: 0 22px;
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: opacity 0.12s;
+    flex-shrink: 0;
+    border-radius: 0;
+  }
+
+  #send-btn:disabled { opacity: 0.3; cursor: default; }
+  #send-btn:not(:disabled):hover { opacity: 0.75; }
+
+  /* ── Footer ── */
+  footer {
+    border-top: 1px solid var(--rule);
+    padding: 9px 32px;
+    display: flex;
+    justify-content: flex-end;
+    background: var(--bg);
+  }
+
+  footer span {
+    font-family: var(--mono);
+    font-size: 8px;
+    color: var(--rule);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  /* ── Loading overlay ── */
+  #loading {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 20px;
+    padding: 48px;
+  }
+
+  #loading .bar-track {
+    width: 180px;
+    height: 2px;
+    background: var(--rule);
+    position: relative;
+    overflow: hidden;
+  }
+
+  #loading .bar-fill {
+    position: absolute;
+    top: 0; left: -100%;
+    width: 100%; height: 100%;
+    background: var(--ink);
+    animation: slide 1.2s ease-in-out infinite;
+  }
+
+  @keyframes slide {
+    0%   { left: -100%; }
+    100% { left: 100%; }
+  }
+
+  #loading p {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+
+  ::-webkit-scrollbar { width: 3px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--rule); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-left">
+    <div class="header-label">Coldwell Banker Select — Internal</div>
+    <div class="header-title">Listing Guide</div>
+  </div>
+  <div class="feed-status">
+    <div class="dot loading" id="feed-dot"></div>
+    <span id="feed-label">Loading feed...</span>
+  </div>
+</header>
+
+<div id="stats-bar">
+  <div class="stat"><div class="stat-label">Total Listings</div><div class="stat-value" id="s-total">—</div></div>
+  <div class="stat"><div class="stat-label">Active</div><div class="stat-value" id="s-active">—</div></div>
+  <div class="stat"><div class="stat-label">Avg List Price</div><div class="stat-value" id="s-avg">—</div></div>
+  <div class="stat"><div class="stat-label">Agents</div><div class="stat-value" id="s-agents">—</div></div>
+</div>
+
+<div id="loading">
+  <div class="bar-track"><div class="bar-fill"></div></div>
+  <p>Loading Coldwell Banker Select feed...</p>
+</div>
+
+<div id="messages" style="display:none"></div>
+<div id="chips" style="display:none"></div>
+
+<div id="input-area">
+  <textarea id="msg-input" rows="1" placeholder="Ask about listings, agents, pricing, or comps..."></textarea>
+  <button id="send-btn" disabled>Send</button>
+</div>
+
+<footer><span>klinekraft</span></footer>
+
+<script>
+const FEED_URL = "https://api.allorigins.win/raw?url=" + encodeURIComponent("http://realistiq.net/exports/iq_cb_select_zillow.xml");
+const CHIPS_DATA = [
+  "Top 5 listings by price",
+  "Agents with the most active listings",
+  "Avg price per sqft in Tulsa",
+  "4+ bed homes under $500k in Broken Arrow",
+  "Most expensive listing — who is the agent?",
+  "Market summary by city",
+];
+
+let listings    = [];
+let systemPrompt = "";
+let history      = [];
+let thinking     = false;
+
+const fmt = n => n ? "$" + n.toLocaleString() : "—";
+
+// ── Parse ─────────────────────────────────────────────────────────────────────
+function buildContext(data) {
+  const active  = data.filter(l => l.status?.toLowerCase().includes("active"));
+  const prices  = active.map(l => l.price).filter(p => p > 0);
+  const avg     = prices.length ? Math.round(prices.reduce((a,b)=>a+b,0)/prices.length) : 0;
+  const med     = prices.length ? [...prices].sort((a,b)=>a-b)[Math.floor(prices.length/2)] : 0;
+
+  const cities  = {};
+  data.forEach(l => { if(l.city) cities[l.city] = (cities[l.city]||0)+1; });
+  const topCities = Object.entries(cities).sort((a,b)=>b[1]-a[1]).slice(0,10)
+    .map(([c,n])=>`${c}(${n})`).join(", ");
+
+  const agents  = {};
+  data.forEach(l => {
+    const name = `${l.agentFirst} ${l.agentLast}`.trim();
+    if(name) agents[name] = (agents[name]||0)+1;
+  });
+  const topAgents = Object.entries(agents).sort((a,b)=>b[1]-a[1]).slice(0,15)
+    .map(([n,c])=>`${n}(${c})`).join(", ");
+
+  const sample = data.slice(0,80).map(l =>
+    `[${l.mlsId}] ${l.address}, ${l.city} | ${l.status} | $${l.price.toLocaleString()} | ${l.beds}bd/${l.baths}ba | ${l.sqft}sqft | ${l.yearBuilt} | Agent: ${l.agentFirst} ${l.agentLast} | ${l.agentEmail} | ${l.agentPhone} | ${l.office}`
+  ).join("\n");
+
+  return `You are the internal listing intelligence agent for Coldwell Banker Select, a full-service real estate brokerage headquartered in Tulsa, Oklahoma. You have live access to the brokerage's active MLS feed.
+
+FEED SUMMARY — ${data.length} total listings:
+Active: ${active.length} | Avg list price: $${avg.toLocaleString()} | Median: $${med.toLocaleString()}
+Top markets: ${topCities}
+Top agents by listing count: ${topAgents}
+
+LISTING DATA (first 80 of ${data.length}):
+${sample}
+
+INSTRUCTIONS:
+- Answer questions about specific listings, agents, pricing, comps, and market stats
+- Search by criteria: price range, beds, baths, city, zip, property type, square footage
+- For comp requests, compare price per sqft, year built, bed/bath count, location
+- For agent queries, return full name, email, phone, office, and listing count
+- For market stats, calculate from the data: averages, medians, counts by city or status
+- Be direct and precise — this is an internal operations tool for brokerage leadership
+- Format currency cleanly. Use structured lists for multiple results.
+- If asked about sold comps or historical data, clarify that the feed contains active listings only
+- No emojis. No filler. Surface the numbers.`;
+}
+
+// ── UI helpers ────────────────────────────────────────────────────────────────
+function appendMessage(role, content) {
+  const wrap = document.createElement("div");
+  wrap.className = `msg ${role}`;
+
+  const label = document.createElement("div");
+  label.className = "msg-label";
+  label.textContent = role === "user" ? "You" : "Listing Agent";
+
+  const body = document.createElement("div");
+  body.className = "msg-body";
+  body.textContent = content;
+
+  wrap.appendChild(label);
+  wrap.appendChild(body);
+  document.getElementById("messages").appendChild(wrap);
+  wrap.scrollIntoView({ behavior: "smooth", block: "end" });
+  return wrap;
+}
+
+function showThinking() {
+  const wrap = document.createElement("div");
+  wrap.className = "msg agent";
+  wrap.id = "thinking-wrap";
+
+  const label = document.createElement("div");
+  label.className = "msg-label";
+  label.textContent = "Listing Agent";
+
+  const dots = document.createElement("div");
+  dots.className = "thinking-dots";
+  dots.innerHTML = "<span></span><span></span><span></span>";
+
+  wrap.appendChild(label);
+  wrap.appendChild(dots);
+  document.getElementById("messages").appendChild(wrap);
+  wrap.scrollIntoView({ behavior: "smooth", block: "end" });
+}
+
+function removeThinking() {
+  const el = document.getElementById("thinking-wrap");
+  if (el) el.remove();
+}
+
+function hideChips() {
+  document.getElementById("chips").style.display = "none";
+}
+
+// ── Send ──────────────────────────────────────────────────────────────────────
+async function send() {
+  const input = document.getElementById("msg-input");
+  const btn   = document.getElementById("send-btn");
+  const text  = input.value.trim();
+  if (!text || thinking) return;
+
+  hideChips();
+  input.value = "";
+  input.style.height = "auto";
+  thinking = true;
+  btn.disabled = true;
+
+  history.push({ role: "user", content: text });
+  appendMessage("user", text);
+  showThinking();
+
+  try {
+    const res = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-20250514",
+        max_tokens: 1000,
+        system: systemPrompt,
+        messages: history,
+      }),
+    });
+    const data  = await res.json();
+    const reply = data.content?.[0]?.text || "No response.";
+    history.push({ role: "assistant", content: reply });
+    removeThinking();
+    appendMessage("agent", reply);
+  } catch {
+    removeThinking();
+    appendMessage("agent", "Error reaching the agent. Please try again.");
+  } finally {
+    thinking = false;
+    btn.disabled = false;
+    input.focus();
+  }
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+async function init() {
+  const dot   = document.getElementById("feed-dot");
+  const label = document.getElementById("feed-label");
+
+  try {
+    const res  = await fetch(FEED_URL);
+    const xml  = await res.text();
+    const parser = new DOMParser();
+    const doc  = parser.parseFromString(xml, "text/xml");
+    const nodes = doc.querySelectorAll("Listing");
+    const g = (n, sel) => n.querySelector(sel)?.textContent?.trim() || "";
+    nodes.forEach(n => {
+      listings.push({
+        address:    g(n,"StreetAddress"), city:  g(n,"City"),
+        state:      g(n,"State"),         zip:   g(n,"Zip"),
+        status:     g(n,"Status"),
+        price:      parseInt(g(n,"Price")) || 0,
+        mlsId:      g(n,"MlsId"),         listingUrl: g(n,"ListingUrl"),
+        type:       g(n,"PropertyType"),
+        beds:       parseInt(g(n,"Bedrooms")) || 0,
+        baths:      parseFloat(g(n,"Bathrooms")) || 0,
+        sqft:       parseInt(g(n,"LivingArea")) || 0,
+        lotSize:    parseFloat(g(n,"LotSize")) || 0,
+        yearBuilt:  parseInt(g(n,"YearBuilt")) || 0,
+        photo:      n.querySelector("PictureUrl")?.textContent?.trim() || "",
+        agentFirst: g(n,"FirstName"),     agentLast:  g(n,"LastName"),
+        agentEmail: g(n,"Email"),         agentPhone: g(n,"OfficeLineNumber"),
+        office:     g(n,"OfficeName"),
+      });
+    });
+
+    if (!listings.length) throw new Error("Empty feed");
+
+    systemPrompt = buildContext(listings);
+
+    // Stats
+    const active = listings.filter(l => l.status?.toLowerCase().includes("active"));
+    const prices = active.map(l=>l.price).filter(p=>p>0);
+    const avg    = prices.length ? Math.round(prices.reduce((a,b)=>a+b,0)/prices.length) : 0;
+    const agentSet = new Set(listings.map(l=>`${l.agentFirst} ${l.agentLast}`).filter(n=>n.trim()));
+
+    document.getElementById("s-total").textContent  = listings.length.toLocaleString();
+    document.getElementById("s-active").textContent = active.length.toLocaleString();
+    document.getElementById("s-avg").textContent    = fmt(avg);
+    document.getElementById("s-agents").textContent = agentSet.size.toLocaleString();
+    document.getElementById("stats-bar").classList.add("visible");
+
+    dot.className   = "dot ok";
+    label.textContent = `${listings.length} listings`;
+
+    // Hide loading, show messages
+    document.getElementById("loading").style.display  = "none";
+    document.getElementById("messages").style.display = "flex";
+
+    // Welcome
+    history.push({
+      role: "assistant",
+      content: `Coldwell Banker Select feed loaded — ${listings.length} listings across Oklahoma and Kansas.\n\nAsk me about listings, agents, pricing, comps, or market stats.`,
+    });
+    appendMessage("agent", history[0].content);
+
+    // Chips
+    const chipWrap = document.getElementById("chips");
+    chipWrap.style.display = "flex";
+    CHIPS_DATA.forEach(text => {
+      const btn = document.createElement("button");
+      btn.className   = "chip";
+      btn.textContent = text;
+      btn.onclick = () => {
+        document.getElementById("msg-input").value = text;
+        document.getElementById("msg-input").focus();
+      };
+      chipWrap.appendChild(btn);
+    });
+
+    document.getElementById("send-btn").disabled = false;
+
+  } catch (err) {
+    dot.className     = "dot error";
+    label.textContent = "Feed unavailable";
+    document.getElementById("loading").style.display  = "none";
+    document.getElementById("messages").style.display = "flex";
+    appendMessage("agent", "Feed unavailable. The proxy may be down — try again shortly.");
+    document.getElementById("send-btn").disabled = false;
+    systemPrompt = "You are the listing intelligence agent for Coldwell Banker Select. The live feed is currently unavailable. Answer general real estate questions as best you can.";
+  }
+}
+
+// ── Events ────────────────────────────────────────────────────────────────────
+document.getElementById("send-btn").addEventListener("click", send);
+document.getElementById("msg-input").addEventListener("keydown", e => {
+  if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); }
+});
+document.getElementById("msg-input").addEventListener("input", function() {
+  this.style.height = "auto";
+  this.style.height = Math.min(this.scrollHeight, 120) + "px";
+});
+
+init();
+</script>
+</body>
+</html>
